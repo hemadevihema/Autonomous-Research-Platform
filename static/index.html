@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autonomous Healthcare Research Platform | Fully Configurable</title>
+  <meta name="description" content="Customizable Multi-Agent Healthcare & Pharma Research Platform powered by LangGraph.">
+  <link rel="icon" type="image/svg+xml" href="/static/insight-orbit.svg">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    /* Tag & Section Manager Additions */
+    .section-chip-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+      min-height: 48px;
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+    }
+    .section-chip {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .section-chip:hover {
+      border-color: var(--accent-cyan);
+    }
+    .chip-remove {
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .chip-remove:hover {
+      color: var(--accent-rose);
+    }
+    .section-controls-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--border-glass);
+      color: var(--text-muted);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-secondary:hover {
+      background: rgba(30, 41, 59, 1);
+      color: var(--text-main);
+      border-color: var(--accent-indigo);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="logo-group">
+      <div class="logo-icon"><img src="/static/insight-orbit.svg" alt="" aria-hidden="true"></div>
+      <div class="brand-text">
+        <h1>Autonomous Research Platform</h1>
+
+      </div>
+    </div>
+    
+  </header>
+
+  <main class="container">
+    
+    <!-- Intake & Parameters Glass Card -->
+    <section class="glass-panel" id="intake-panel">
+      <h2 class="section-title">Research Project Configuration</h2>
+      <p class="section-desc">Every parameter is fully customizable for your specific project brief. Set any disease, target countries, custom research sections, and eligibility rules.</p>
+      
+      <form id="research-form">
+        <!-- Row 1: Disease & Country -->
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="topic-input">Disease / Research Topic / Condition</label>
+            <input type="text" id="topic-input" class="input-box" value="Obesity" placeholder="e.g. Type 2 Diabetes, Alzheimer's, Hypertension, Oncology" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="country-input">Target Geographies / Countries (comma separated)</label>
+            <input type="text" id="country-input" class="input-box" value="India" placeholder="e.g. India, United Kingdom, United States, Germany" required>
+          </div>
+        </div>
+
+        <!-- Row 2: Validation Cutoff Rules & Volume (Fully User Configurable) -->
+        <div class="form-grid validation-grid" style="margin-bottom: 24px;">
+          <div class="form-group">
+            <label for="year-cutoff-input">Rule 1: Publication Cutoff</label>
+            <input type="number" id="year-cutoff-input" class="input-box" value="2021" min="1900" max="2100" step="1" required>
+            <small class="field-hint">Publications from this year onward pass the publication-year rule.</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="period-start-input">Rule 2: Data Period Start Year</label>
+            <input type="number" id="period-start-input" class="input-box" value="2021" min="1900" max="2100" step="1" required>
+            <small class="field-hint">Data collected before this year is flagged for review.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="period-end-input">Rule 2: Data Period End Year</label>
+            <input type="number" id="period-end-input" class="input-box" value="2026" min="1900" max="2100" step="1" required>
+            <small class="field-hint">Defines the end of the preferred data collection window.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="volume-input">Search Result Limit / Section</label>
+            <input type="number" id="volume-input" class="input-box" value="20" min="5" max="100">
+            <small class="field-hint">Requests up to this many results from OpenAlex, plus supplemental PubMed results. Duplicates and validation affect the final counts.</small>
+          </div>
+        </div>
+
+        <!-- Section 3: Interactive Custom Sections Manager -->
+        <div class="form-group">
+          <label style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Required Research Sections (<span id="section-count-badge">9</span> defined)</span>
+            <span style="font-size: 11px; color: var(--accent-cyan);">Click ✕ on any tag to remove it</span>
+          </label>
+          
+          <!-- Chips Container -->
+          <div class="section-chip-container" id="chips-container">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <!-- Add Custom Section Input & Action Buttons -->
+          <div class="section-controls-row">
+            <input type="text" id="custom-section-input" class="input-box" placeholder="Type a custom section name (e.g. Pricing & Reimbursement, Key Opinion Leaders) and press Enter" style="flex: 2;">
+            <button type="button" class="btn-secondary" id="btn-add-section" style="color: var(--accent-cyan); border-color: rgba(6, 182, 212, 0.4);">+ Add Section</button>
+            <button type="button" class="btn-secondary" id="btn-reset-sections"><svg class="neon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5"/></svg> Reset to 9 Defaults</button>
+            <button type="button" class="btn-secondary" id="btn-clear-sections" style="color: var(--accent-rose);"><svg class="neon-icon icon-rose" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg> Clear All</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-launch" id="btn-submit">
+          <span id="btn-spinner" style="display:none;"><span class="loading-ring" aria-hidden="true"></span></span>
+          <span id="btn-text"><svg class="neon-icon icon-bright" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.64 5.64l2.12 2.12m8.48 8.48 2.12 2.12m0-12.72-2.12 2.12m-8.48 8.48-2.12 2.12"/><circle cx="12" cy="12" r="4"/></svg> <span id="btn-label">Execute Autonomous Multi-Agent Research</span></span>
+        </button>
+      </form>
+    </section>
+
+    <!-- Multi-Agent Stepper -->
+    <section class="glass-panel" id="stepper-panel" style="display: none;">
+      <h3 class="section-title" style="font-size: 16px; margin-bottom: 16px;">Live Agent Workflow Execution</h3>
+      <div class="stepper-container">
+        <div class="stepper-step" id="step-1">
+          <div class="step-icon">1</div>
+          <span class="step-name">Planner</span>
+        </div>
+        <div class="stepper-step" id="step-2">
+          <div class="step-icon">2</div>
+          <span class="step-name">Scouting</span>
+        </div>
+        <div class="stepper-step" id="step-3">
+          <div class="step-icon">3</div>
+          <span class="step-name">Validation</span>
+        </div>
+        <div class="stepper-step" id="step-4">
+          <div class="step-icon">4</div>
+          <span class="step-name">Insights</span>
+        </div>
+        <div class="stepper-step" id="step-5">
+          <div class="step-icon">5</div>
+          <span class="step-name">Verbatims</span>
+        </div>
+        <div class="stepper-step" id="step-6">
+          <div class="step-icon">6</div>
+          <span class="step-name">QC Audit</span>
+        </div>
+        <div class="stepper-step" id="step-7">
+          <div class="step-icon">7</div>
+          <span class="step-name">Deliverables</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="glass-panel" id="results-panel" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+          <h2 class="section-title" id="results-heading">Research Deliverables Ready</h2>
+          <p class="section-desc" id="results-subheading" style="margin-bottom: 0;">Project Reference: PROJ-...</p>
+        </div>
+        <div class="badge badge-emerald" id="status-pill" style="font-size: 14px; padding: 8px 16px;">
+          ✓ STATUS: COMPLETED
+        </div>
+      </div>
+
+      <!-- Metrics Grid -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">Validated Primary Sources</div>
+          <div class="metric-value" id="metric-validated" style="color: var(--accent-emerald);">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Rejected &amp; Review Sources</div>
+          <div class="metric-value" id="metric-rejected" style="color: var(--accent-rose);">0</div>
+          <div class="metric-detail" id="metric-rejected-detail">0 rejected · 0 review candidates</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Verified Verbatim Quotations</div>
+          <div class="metric-value" id="metric-verbatims" style="color: var(--accent-cyan);">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Quality Control Compliance Score</div>
+          <div class="metric-value" id="metric-coverage" style="color: var(--accent-indigo);">100%</div>
+        </div>
+      </div>
+
+      <!-- Deliverables Download Hub -->
+      <div class="downloads-panel">
+        <a href="#" id="link-excel" class="btn-download btn-excel" download>
+          <span><svg class="neon-icon icon-emerald" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 17v3h16v-3"/></svg> Download 14-Column Master Spreadsheet (.xlsx)</span>
+        </a>
+        <a href="#" id="link-word" class="btn-download btn-word" download>
+          <span><svg class="neon-icon icon-blue" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7m-7 4h7"/></svg> Download Complete Word Monograph (.docx)</span>
+        </a>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="tabs-header">
+        <button class="tab-btn active" data-tab="tab-sources"><svg class="neon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21zM4 5.5v13M8 7h8m-8 4h8"/></svg> Validated Sources (<span id="count-sources">0</span>)</button>
+        <button class="tab-btn" data-tab="tab-insights"><svg class="neon-icon icon-violet" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M6 16V9m4 7V5m4 11v-4m4 4V7"/></svg> Insights &amp; Verbatims (<span id="count-insights">0</span>)</button>
+        <button class="tab-btn" data-tab="tab-rejected"><svg class="neon-icon icon-rose" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6m0-6-6 6"/></svg> Rejected &amp; Review Sources (<span id="count-rejected">0</span>)</button>
+        <button class="tab-btn" data-tab="tab-qc"><svg class="neon-icon icon-emerald" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 3v5c0 5-3.4 8-8 10-4.6-2-8-5-8-10V6z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg> QC Coverage Matrix</button>
+        <button class="tab-btn" data-tab="tab-logs"><svg class="neon-icon icon-amber" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM8 8h8m-8 4h8m-8 4h5"/></svg> Agent Audit Log</button>
+      </div>
+
+      <!-- Tab 1: Validated Sources -->
+      <div class="tab-content active" id="tab-sources">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px;">#</th>
+                <th>Title & Publisher</th>
+                <th style="width: 80px;">Year</th>
+                <th style="width: 110px;">Data Period</th>
+                <th>Section Supported</th>
+                <th style="width: 110px;">Status</th>
+                <th style="width: 90px;">Link</th>
+              </tr>
+            </thead>
+            <tbody id="sources-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination-controls" style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:8px;">
+          <button id="sources-prev" disabled style="background:var(--accent-indigo); color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">&lt;</button>
+          <span id="sources-page-info">Page 1 of 1</span>
+          <button id="sources-next" disabled style="background:var(--accent-indigo); color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">&gt;</button>
+        </div>
+      </div>
+
+      <!-- Tab 2: Insights & Verbatims -->
+      <div class="tab-content" id="tab-insights">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 220px;">Source</th>
+                <th style="width: 140px;">Section</th>
+                <th>Analytical Insight</th>
+                <th>Verified Verbatim Quote</th>
+                <th style="width: 100px;">Verification</th>
+              </tr>
+            </thead>
+            <tbody id="insights-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination-controls" style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:8px;">
+          <button id="insights-prev" disabled style="background:var(--accent-indigo); color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">&lt;</button>
+          <span id="insights-page-info">Page 1 of 1</span>
+          <button id="insights-next" disabled style="background:var(--accent-indigo); color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">&gt;</button>
+        </div>
+      </div>
+
+      <!-- Tab 3: Rejected Sources -->
+      <div class="tab-content" id="tab-rejected">
+        <p class="section-desc" style="margin-bottom: 14px;">Sources with data periods outside the configured preferred window are kept here as review candidates. They are separated from sources that failed a hard validation rule.</p>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Publisher</th>
+                <th>Year</th>
+                <th>Disposition</th>
+                <th>Source Link</th>
+              </tr>
+            </thead>
+            <tbody id="rejected-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 4: QC Coverage Matrix -->
+      <div class="tab-content" id="tab-qc">
+        <h3 class="section-title" style="font-size: 16px; margin-bottom: 12px;">Country x Section Coverage</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Country x Section Coverage Domain</th>
+                <th style="width: 150px;">Accepted / Review Count</th>
+                <th style="width: 130px;">Coverage Status</th>
+              </tr>
+            </thead>
+            <tbody id="qc-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+        <h3 class="section-title" style="font-size: 16px; margin: 22px 0 12px;">Data-Year Coverage</h3>
+        <p class="section-desc">Coverage is based on source-supported collection periods. Partially verified periods are shown separately; they do not count as verified year coverage.</p>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Country | Section | Data Year</th>
+                <th style="width: 150px;">Verified Sources</th>
+                <th style="width: 150px;">Partial Sources</th>
+                <th style="width: 150px;">Coverage Status</th>
+              </tr>
+            </thead>
+            <tbody id="year-coverage-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 5: Agent Audit Log -->
+      <div class="tab-content" id="tab-logs">
+        <div class="console-log" id="console-log-box">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="/static/app.js?v=20261025-2"></script>
+</body>
+</html>
