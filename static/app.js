@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stepperPanel.style.display = 'block';
     resultsPanel.style.display = 'none';
 
-    animateSteps();
+    const progressTimer = animateSteps();
 
     try {
       const response = await fetch('/api/research', {
@@ -171,21 +171,46 @@ document.addEventListener('DOMContentLoaded', () => {
         })
       });
 
-      if (!response.ok) {
-        throw new Error(`Server returned error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const queued = await parseApiResponse(response);
+      const data = await waitForResearchJob(queued.status_url);
       displayResults(data);
 
     } catch (err) {
       alert(`Research Execution Error: ${err.message}`);
+      document.querySelectorAll('.stepper-step').forEach(step => step.classList.remove('active'));
     } finally {
+      clearInterval(progressTimer);
       btnSubmit.disabled = false;
       btnSpinner.style.display = 'none';
       btnLabel.textContent = 'Execute Autonomous Multi-Agent Research';
     }
   });
+
+  async function parseApiResponse(response) {
+    const bodyText = await response.text();
+    let body = {};
+    try {
+      body = bodyText ? JSON.parse(bodyText) : {};
+    } catch {
+      body = { message: bodyText.slice(0, 500) };
+    }
+
+    if (!response.ok) {
+      const detail = body.detail || body.error || body.message || response.statusText || 'No error details were returned.';
+      throw new Error(`HTTP ${response.status}: ${detail}`);
+    }
+    return body;
+  }
+
+  async function waitForResearchJob(statusUrl) {
+    while (true) {
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      const response = await fetch(statusUrl, { cache: 'no-store' });
+      const job = await parseApiResponse(response);
+      if (job.status === 'completed') return job.result;
+      if (job.status === 'failed') throw new Error(job.error || 'The research job failed.');
+    }
+  }
 
   function animateSteps() {
     const steps = [1, 2, 3, 4, 5, 6, 7];
@@ -195,21 +220,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let current = 1;
-    const interval = setInterval(() => {
-      if (current > 1) {
-        const prev = document.getElementById(`step-${current - 1}`);
-        if (prev) {
-          prev.classList.remove('active');
-          prev.classList.add('completed');
-        }
-      }
-      if (current <= 7) {
-        const curr = document.getElementById(`step-${current}`);
-        if (curr) curr.classList.add('active');
-        current++;
-      } else {
-        clearInterval(interval);
-      }
+    return setInterval(() => {
+      steps.forEach(i => {
+        const el = document.getElementById(`step-${i}`);
+        if (el) el.classList.remove('active');
+      });
+      const currentStep = document.getElementById(`step-${current}`);
+      if (currentStep) currentStep.classList.add('active');
+      current = current % steps.length + 1;
     }, 1200);
   }
 
